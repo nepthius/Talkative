@@ -1,17 +1,27 @@
 <html lang="en">
-<body>
-
-    <div class = "about content"> 
-        <h2>Hi <%=name%>,</h2>
-        <p>Welcome to Talkitive!</p>
-    </div>
-    <br>
-    <div>
-        <form action="/logout?_method=DELETE" method="POST">
-            <button type="submit">Log Out</button>
-        </form>
-    </div>
+    <%- include('./partials/home_styles.ejs') %>
     
+<body>
+    <!-- Top navigation -->
+<div class="topnav">
 
+    <!-- Centered link -->
+    <div class="topnav-centered">
+      <a href="/" class="active">Home</a>
+    </div>
+  
+    <!-- Left-aligned links (default) -->
+    <a href=""><h3>Welcome To Talkative</h3></a>
+  
+    <!-- Right-aligned links -->
+    <div class="topnav-right">
+      <a href="/generate">Generate</a>
+      <a href="/classify">Classify</a>
+      <a>Logout<form action="/logout?_method=DELETE" method="POST">
+        <button type="submit">-></button>
+    </form></a>
+    </div>
+  
+  </div>
 </body> 
 </html>
