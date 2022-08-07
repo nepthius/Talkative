@@ -8,6 +8,10 @@ const flash = require('express-flash')
 const session = require('express-session')
 const methodOverride = require('method-override')
 const initializePassport =  require('./passport-config')
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
 initializePassport(
     passport, 
     email => users.find(user=>user.email === email),
@@ -20,7 +24,7 @@ const users = []
  
 
 //connect to CockroachDB
-app.listen(3000)
+server.listen(3000)
 
 
 //register view engine 
@@ -94,6 +98,10 @@ app.delete('/logout', (req, res) => {
     })
 })
 
+//talk to chatbot
+app.get('/bot', (req,res) => {
+    res.render('bot.ejs')
+})
 
 //middleware that redirects user to login if they are not authenticated
 function checkAuthenticated(req, res, next){
@@ -110,4 +118,46 @@ function checkNotAuthenticated(req, res, next){
     }
     next()
 }
+
+
+io.on('connection', (socket) => {
+    socket.on('chat message', (msg) => {
+      io.emit('chat message', msg);
+    });
+});
+
+
+/*
+const cohere = require('cohere-ai');
+cohere.init(process.env.API);
+(async () => {
+  const response = await cohere.generate({
+    model: 'small',
+    prompt: 'Question: How do I stay focused?\nAnswer: Eliminate distractions \n--\nQuestion: How do I eat less?\nAnswer: Drink more water.\n--\nQuestion: How can I stay calm?\nAnswer: Take deep breaths.\n--\nQuestion: How to become less hungry?\nAnswer: Don\'t eat too much.\n--\nQuestion: How to stay happy?\nAnswer: Eat more.\n--\nQuestion: How can I not be sad?\nAnswer: ',
+    max_tokens: 50,
+    temperature: 0.9,
+    k: 0,
+    p: 0.75,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    stop_sequences: ["--"],
+    return_likelihoods: 'NONE'
+  });
+  s = `Prediction: ${response.body.generations[0].text}`
+  s = s.split("--")
+  for(let i = 0; i < s.length; i++){
+    console.log(s[i])
+  }
+  
+})();
+*/
+const cohere = require('cohere-ai');
+cohere.init(process.env.API);
+(async () => {
+  const response = await cohere.classify({
+    model: '489cf173-a605-4ed6-9a90-67a97244673f-ft',
+    inputs: ["I don't know if I'm going to pass this test. Oh jeez"]
+  });
+  console.log(`Your statement is perceived as ${((response.body.classifications)[0]).prediction}`);
+})();
 
