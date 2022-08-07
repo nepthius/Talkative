@@ -104,8 +104,8 @@ app.delete('/logout', (req, res) => {
 })
 
 //talk to chatbot
-app.get('/bot', (req,res) => {
-    res.render('bot.ejs')
+app.get('/classify', (req,res) => {
+    res.render('classify.ejs')
 })
 
 //middleware that redirects user to login if they are not authenticated
@@ -124,46 +124,49 @@ function checkNotAuthenticated(req, res, next){
     next()
 }
 
+//Stores prompt
+p = 'Question: How do I stay focused?\nAnswer: Eliminate distractions \n--\nQuestion: How do I eat less?\nAnswer: Drink more water.\n--\nQuestion: How can I stay calm?\nAnswer: Take deep breaths.\n--\nQuestion: How to become less hungry?\nAnswer: Don\'t eat too much.\n--\nQuestion: How to stay happy?\nAnswer: Eat more.\n--\n'
+//Stores whether it is generating or classifying
+test = 0
 
 io.on('connection', (socket) => {
     socket.on('chat message', (msg) => {
       console.log(username)
       io.emit('chat message', (username + ': ' + msg));
+      p += `Question: ${msg}` + '\nAnswer: ';
       (async () => {
-        const response = await cohere.classify({
-          model: '489cf173-a605-4ed6-9a90-67a97244673f-ft',
-          inputs: [msg]
+        const response = await cohere.generate({
+          model: 'small',
+          prompt: p,
+          max_tokens: 50,
+          temperature: 0.9,
+          k: 0,
+          p: 0.75,
+          frequency_penalty: 0,
+          presence_penalty: 0,
+          stop_sequences: ["--"],
+          return_likelihoods: 'NONE'
         });
-        io.emit('chat message', (`Chatbot: Your statement is perceived as ${((response.body.classifications)[0]).prediction}`));
+        s = `${response.body.generations[0].text}`
+        s = s.split("--")
+        for(let i = 0; i < s.length; i++){
+          if(s.includes('Question:') || s.includes('Answer:')){
+            break
+          }
+          if(s != '\n' || s != '' || s!=null){
+            io.emit('chat message', ("Chatbot: " + s[i]))
+          }
+          
+        }
+        
       })();
     });
 });
 
 
-/*
-const cohere = require('cohere-ai');
-cohere.init(process.env.API);
-(async () => {
-  const response = await cohere.generate({
-    model: 'small',
-    prompt: 'Question: How do I stay focused?\nAnswer: Eliminate distractions \n--\nQuestion: How do I eat less?\nAnswer: Drink more water.\n--\nQuestion: How can I stay calm?\nAnswer: Take deep breaths.\n--\nQuestion: How to become less hungry?\nAnswer: Don\'t eat too much.\n--\nQuestion: How to stay happy?\nAnswer: Eat more.\n--\nQuestion: How can I not be sad?\nAnswer: ',
-    max_tokens: 50,
-    temperature: 0.9,
-    k: 0,
-    p: 0.75,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-    stop_sequences: ["--"],
-    return_likelihoods: 'NONE'
-  });
-  s = `Prediction: ${response.body.generations[0].text}`
-  s = s.split("--")
-  for(let i = 0; i < s.length; i++){
-    console.log(s[i])
-  }
-  
-})();
-*/
+
+
+
 
 
 
