@@ -15,13 +15,30 @@
   
     <!-- Right-aligned links -->
     <div class="topnav-right">
-      <a href="/generate">Generate</a>
-      <a href="/classify">Classify</a>
+      <a href="/generate">Chatbot</a>
+      <a href="/classify">Sentiment Analysis</a>
       <a>Logout<form action="/logout?_method=DELETE" method="POST">
         <button type="submit">-></button>
     </form></a>
     </div>
   
+  </div>
+  <p>
+    Talkative is a Cohere-powered tool that helps people understand how
+    their messages are perceived, so that they can communicate more clearly
+    with friends and peers. Use the navbar to select the tools you want to use.
+  </p>
+  <p>
+    Use the Sentiment Analysis tool to see what emotions your messages give off.
+    Using a fine-tuned Cohere classify model trained on labeled Tweet data seen <a href="https://www.kaggle.com/datasets/042977506d4b87fe2ce6998514bd60df9ae2bdde98acf973acfd87e758e50d68?resource=download">here</a>,
+    the Sentiment Analysis tool categorizes messages into various different emotions.
+  </p>
+  <p>
+    The Chatbot tool uses a Cohere generate model to respond to user messages and answer questions.
+    Use this tool to help practice conversations and develop your communication skills.
+  </p>
+  <div class="center">
+    <img src="handshaking.png">
   </div>
 </body> 
 </html>
