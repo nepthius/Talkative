@@ -12,6 +12,8 @@ const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
+const cohere = require('cohere-ai');
+cohere.init(process.env.API);
 initializePassport(
     passport, 
     email => users.find(user=>user.email === email),
@@ -22,6 +24,8 @@ initializePassport(
 //You need to fix this from a local variable to connecting with a databse
 const users = []
  
+//Username
+let username = ''
 
 //connect to CockroachDB
 server.listen(3000)
@@ -49,6 +53,7 @@ app.use(express.urlencoded({extended:true})) //Accepts form data from register a
 //Direct to homepage
 app.get('/', checkAuthenticated, (req, res) => {
     res.render('home.ejs', {title: 'Homepage', name: req.user.name}) 
+    username = String(req.user.name)
 })
 
 //Login routes
@@ -122,7 +127,15 @@ function checkNotAuthenticated(req, res, next){
 
 io.on('connection', (socket) => {
     socket.on('chat message', (msg) => {
-      io.emit('chat message', msg);
+      console.log(username)
+      io.emit('chat message', (username + ': ' + msg));
+      (async () => {
+        const response = await cohere.classify({
+          model: '489cf173-a605-4ed6-9a90-67a97244673f-ft',
+          inputs: [msg]
+        });
+        io.emit('chat message', (`Chatbot: Your statement is perceived as ${((response.body.classifications)[0]).prediction}`));
+      })();
     });
 });
 
@@ -151,13 +164,6 @@ cohere.init(process.env.API);
   
 })();
 */
-const cohere = require('cohere-ai');
-cohere.init(process.env.API);
-(async () => {
-  const response = await cohere.classify({
-    model: '489cf173-a605-4ed6-9a90-67a97244673f-ft',
-    inputs: ["I don't know if I'm going to pass this test. Oh jeez"]
-  });
-  console.log(`Your statement is perceived as ${((response.body.classifications)[0]).prediction}`);
-})();
+
+
 
